@@ -1,24 +1,17 @@
-use crate::{Dataset, DatasetOptions, VALID_YEARS, valid_rounds, widgets::Dropdown};
+use crate::{Dataset, Options, widgets::Dropdown};
 use egui_extras::{Column, TableBuilder};
 
 pub struct AppState {
-    dataset: Option<Dataset>,
-    dataset_options: DatasetOptions,
+    dataset: Dataset,
+    options: Options,
 }
 
 impl AppState {
     pub fn new(_cc: &eframe::CreationContext) -> Self {
         Self {
-            dataset: None,
-            dataset_options: DatasetOptions::default(),
+            dataset: Dataset::new(),
+            options: Options::default(),
         }
-    }
-
-    fn load_dataset(&mut self) {
-        let mut dataset = Dataset::new(&self.dataset_options).unwrap();
-
-        dataset.fetch_rows().unwrap();
-        self.dataset = Some(dataset);
     }
 }
 
@@ -32,25 +25,27 @@ impl eframe::App for AppState {
                 .show(ui, |ui| {
                     ui.vertical(|ui| {
                         // Year selection
-                        Dropdown::with_state(&mut self.dataset_options.year)
-                            .label("Year")
-                            .show(ui, || VALID_YEARS);
+                        Dropdown::with_state(&mut self.options.year)
+                            .with_label("Year")
+                            .with_options(Options::get_valid_years())
+                            .show(ui);
 
                         // Round selection
-                        Dropdown::with_state(&mut self.dataset_options.round)
-                            .label("Round")
-                            .show(ui, || valid_rounds(self.dataset_options.year.unwrap()));
+                        Dropdown::with_state(&mut self.options.round)
+                            .with_label("Round")
+                            .with_options(Options::get_valid_rounds(self.options.year))
+                            .with_enabled(self.options.year.is_some())
+                            .show(ui);
 
                         // Load button
                         if ui
                             .add_enabled(
-                                self.dataset_options.year.is_some()
-                                    && self.dataset_options.round.is_some(),
+                                self.options.is_complete(),
                                 egui::Button::new("Load dataset"),
                             )
                             .clicked()
                         {
-                            self.load_dataset();
+                            self.dataset.load(&self.options).unwrap();
                         }
                     });
                 });
@@ -59,7 +54,7 @@ impl eframe::App for AppState {
         // Center Panel
         egui::CentralPanel::default().show(ctx, |ui| {
             // Table view of dataset
-            if let Some(dataset) = &mut self.dataset {
+            if self.dataset.is_loaded() {
                 TableBuilder::new(ui)
                     .column(Column::remainder())
                     .columns(Column::auto(), 5)
@@ -72,15 +67,17 @@ impl eframe::App for AppState {
                         header.col(label("Closing Rank"));
                     })
                     .body(|body| {
-                        body.rows(30.0, dataset.rows.len(), |mut row| {
-                            let data = &dataset.rows[row.index()];
+                        let entries = self.dataset.get_entries();
+
+                        body.rows(30.0, entries.len(), |mut row| {
+                            let data = &entries[row.index()];
 
                             row.col(label(&data.institute));
                             row.col(label(&data.quota));
                             row.col(label(&data.seat_type));
                             row.col(label(&data.gender));
-                            row.col(label(&data.or.to_string()));
-                            row.col(label(&data.cr.to_string()));
+                            row.col(label(data.or));
+                            row.col(label(data.cr));
                         });
                     });
             }
@@ -94,8 +91,8 @@ impl eframe::App for AppState {
     }
 }
 
-fn label(content: &str) -> impl FnOnce(&mut egui::Ui) {
+fn label<T: ToString>(content: T) -> impl FnOnce(&mut egui::Ui) {
     move |ui| {
-        ui.label(content);
+        ui.label(content.to_string());
     }
 }
