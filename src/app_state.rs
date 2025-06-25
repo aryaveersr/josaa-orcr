@@ -1,9 +1,14 @@
-use crate::{Dataset, Options, widgets::Dropdown};
+use crate::{Dataset, Filters, Options, Sort, widgets::Dropdown};
 use egui_extras::{Column, TableBuilder};
 
 pub struct AppState {
     dataset: Dataset,
     options: Options,
+
+    filter_values: Option<Filters>,
+    filters: Option<Filters>,
+
+    sort: Sort,
 }
 
 impl AppState {
@@ -11,6 +16,11 @@ impl AppState {
         Self {
             dataset: Dataset::new(),
             options: Options::default(),
+
+            filter_values: None,
+            filters: None,
+
+            sort: Sort::default(),
         }
     }
 }
@@ -23,19 +33,25 @@ impl eframe::App for AppState {
             egui::CollapsingHeader::new("Choose a dataset")
                 .default_open(true)
                 .show(ui, |ui| {
-                    ui.vertical(|ui| {
+                    ui.horizontal(|ui| {
                         // Year selection
                         Dropdown::with_state(&mut self.options.year)
                             .with_label("Year")
-                            .with_options(Options::get_valid_years())
-                            .show(ui);
+                            .with_options(Options::get_valid_years().map(Some))
+                            .show(ui, |state| match state {
+                                Some(selected) => selected.to_string(),
+                                None => "Select".into(),
+                            });
 
                         // Round selection
                         Dropdown::with_state(&mut self.options.round)
                             .with_label("Round")
-                            .with_options(Options::get_valid_rounds(self.options.year))
+                            .with_options(Options::get_valid_rounds(self.options.year).map(Some))
                             .with_enabled(self.options.year.is_some())
-                            .show(ui);
+                            .show(ui, |state| match state {
+                                Some(selected) => selected.to_string(),
+                                None => "Select".into(),
+                            });
 
                         // Load button
                         if ui
@@ -45,10 +61,35 @@ impl eframe::App for AppState {
                             )
                             .clicked()
                         {
-                            self.dataset.load(&self.options).unwrap();
+                            self.dataset.create_connection(&self.options).unwrap();
+
+                            self.filters =
+                                Some(Filters::new(self.dataset.get_connection()).unwrap());
+                            self.filter_values = self.filters.clone();
+
+                            self.dataset
+                                .load(self.filters.as_ref().unwrap(), self.sort)
+                                .unwrap();
                         }
                     });
                 });
+
+            // Sort selection
+            ui.horizontal(|ui| {
+                Dropdown::with_state(&mut self.sort)
+                    .with_label("Sort by")
+                    .with_options(Sort::as_vec().into_iter())
+                    .show(ui, Sort::to_string);
+
+                if ui
+                    .add_enabled(self.dataset.is_loaded(), egui::Button::new("Apply sorting"))
+                    .clicked()
+                {
+                    self.dataset
+                        .load(self.filters.as_ref().unwrap(), self.sort)
+                        .unwrap();
+                }
+            });
         });
 
         // Center Panel

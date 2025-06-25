@@ -1,6 +1,6 @@
-pub trait Choice: ToString + PartialEq + Clone {}
+pub trait Choice: PartialEq + Clone {}
 
-impl<T> Choice for T where T: ToString + PartialEq + Clone {}
+impl<T> Choice for T where T: PartialEq + Clone {}
 
 pub struct Dropdown<'a, T, I>
 where
@@ -9,7 +9,7 @@ where
 {
     label: String,
     enabled: bool,
-    state: &'a mut Option<T>,
+    state: &'a mut T,
     options: Option<I>,
 }
 
@@ -18,7 +18,7 @@ where
     T: Choice,
     I: Iterator<Item = T>,
 {
-    pub fn with_state(state: &'a mut Option<T>) -> Self {
+    pub fn with_state(state: &'a mut T) -> Self {
         Self {
             label: "".into(),
             enabled: true,
@@ -42,17 +42,14 @@ where
         self
     }
 
-    pub fn show(self, ui: &mut egui::Ui) {
+    pub fn show(self, ui: &mut egui::Ui, display: impl Fn(&T) -> String) {
         ui.horizontal(|ui| {
             ui.label(&self.label);
 
             ui.add_enabled_ui(self.enabled, |ui| {
                 egui::ComboBox::from_id_salt(&self.label)
                     // Convert selected value into string or display fallback.
-                    .selected_text(match self.state {
-                        Some(selected) => selected.to_string(),
-                        None => "Select".into(),
-                    })
+                    .selected_text(display(&self.state))
                     // Show options in dropdown
                     .show_ui(ui, |ui| {
                         match self.options {
@@ -60,8 +57,8 @@ where
                                 for option in options {
                                     ui.selectable_value(
                                         self.state,
-                                        Some(option.clone()),
-                                        option.to_string(),
+                                        option.clone(),
+                                        display(&option),
                                     );
                                 }
                             }

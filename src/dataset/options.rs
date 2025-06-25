@@ -1,6 +1,6 @@
 use std::{ops::RangeInclusive, path::PathBuf};
 
-#[derive(Default)]
+#[derive(Default, PartialEq, Eq, Clone, Copy)]
 pub struct Options {
     pub year: Option<u16>,
     pub round: Option<u8>,
