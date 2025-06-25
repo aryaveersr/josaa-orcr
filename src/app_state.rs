@@ -1,4 +1,4 @@
-use crate::{Dataset, DatasetOptions, VALID_YEARS, valid_rounds};
+use crate::{Dataset, DatasetOptions, VALID_YEARS, valid_rounds, widgets::Dropdown};
 use egui_extras::{Column, TableBuilder};
 
 pub struct AppState {
@@ -32,38 +32,14 @@ impl eframe::App for AppState {
                 .show(ui, |ui| {
                     ui.vertical(|ui| {
                         // Year selection
-                        egui::ComboBox::from_label("Year")
-                            .selected_text(match self.dataset_options.year {
-                                Some(year) => year.to_string(),
-                                None => "Select".into(),
-                            })
-                            .show_ui(ui, |ui| {
-                                for year in VALID_YEARS {
-                                    ui.selectable_value(
-                                        &mut self.dataset_options.year,
-                                        Some(year),
-                                        year.to_string(),
-                                    );
-                                }
-                            });
+                        Dropdown::with_state(&mut self.dataset_options.year)
+                            .label("Year")
+                            .show(ui, || VALID_YEARS);
 
                         // Round selection
-                        ui.add_enabled_ui(self.dataset_options.year.is_some(), |ui| {
-                            egui::ComboBox::from_label("Round")
-                                .selected_text(match self.dataset_options.round {
-                                    Some(round) => round.to_string(),
-                                    None => "Select".into(),
-                                })
-                                .show_ui(ui, |ui| {
-                                    for round in valid_rounds(self.dataset_options.year.unwrap()) {
-                                        ui.selectable_value(
-                                            &mut self.dataset_options.round,
-                                            Some(round),
-                                            round.to_string(),
-                                        );
-                                    }
-                                });
-                        });
+                        Dropdown::with_state(&mut self.dataset_options.round)
+                            .label("Round")
+                            .show(ui, || valid_rounds(self.dataset_options.year.unwrap()));
 
                         // Load button
                         if ui
