@@ -1,5 +1,5 @@
-use rusqlite::Connection;
-use std::ops::RangeInclusive;
+use rusqlite::{Connection, OpenFlags};
+use std::{ops::RangeInclusive, path::PathBuf};
 
 pub const VALID_YEARS: RangeInclusive<u16> = 2016..=2024;
 
@@ -48,28 +48,58 @@ impl DatasetOptions {
         self.round = Some(round);
         self
     }
+
+    fn get_db_path(&self) -> PathBuf {
+        PathBuf::new()
+            .join("db")
+            .join(self.year.unwrap().to_string())
+            .join(format!(
+                "data-{}-{}.db",
+                self.year.unwrap(),
+                self.round.unwrap()
+            ))
+    }
 }
 
 pub struct Dataset {
     connection: Connection,
 
-    last_limit: usize,
     pub rows: Vec<Row>,
 }
 
 impl Dataset {
     pub fn new(options: &DatasetOptions) -> rusqlite::Result<Self> {
-        let connection = Connection::open_in_memory()?;
+        let connection =
+            Connection::open_with_flags(options.get_db_path(), OpenFlags::SQLITE_OPEN_READ_ONLY)?;
 
         Ok(Self {
             connection,
-
             rows: Vec::new(),
-            last_limit: 0,
         })
     }
 
-    pub fn fetch_rows(&mut self) {}
+    pub fn fetch_rows(&mut self) -> rusqlite::Result<()> {
+        let mut stmt = self
+            .connection
+            .prepare("SELECT institute, quota, seatType, gender, orank, crank FROM data")?;
+
+        let row_iter = stmt.query_map([], |row| {
+            Ok(Row {
+                institute: row.get(0)?,
+                quota: row.get(1)?,
+                seat_type: row.get(2)?,
+                gender: row.get(3)?,
+                or: row.get(4)?,
+                cr: row.get(5)?,
+            })
+        })?;
+
+        for row in row_iter {
+            self.rows.push(row?);
+        }
+
+        Ok(())
+    }
 }
 
 pub struct Row {

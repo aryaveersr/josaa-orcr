@@ -17,7 +17,7 @@ impl AppState {
     fn load_dataset(&mut self) {
         let mut dataset = Dataset::new(&self.dataset_options).unwrap();
 
-        dataset.fetch_rows();
+        dataset.fetch_rows().unwrap();
         self.dataset = Some(dataset);
     }
 }
