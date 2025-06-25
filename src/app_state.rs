@@ -1,4 +1,7 @@
-use crate::{Dataset, Filters, Options, Sort, widgets::Dropdown};
+use crate::{
+    Dataset, Filters, Options, Sort,
+    widgets::{Dropdown, Multiselect, RangeSelector},
+};
 use egui_extras::{Column, TableBuilder};
 
 pub struct AppState {
@@ -73,6 +76,76 @@ impl eframe::App for AppState {
                         }
                     });
                 });
+
+            // Filters
+            ui.add_enabled_ui(self.dataset.is_loaded(), |ui| {
+                ui.collapsing("Filters", |ui| {
+                    // Quota
+                    Multiselect::with_state(&mut self.filters.as_mut().unwrap().quota)
+                        .with_label("Quota")
+                        .with_options(
+                            self.filter_values
+                                .as_ref()
+                                .unwrap()
+                                .quota
+                                .clone()
+                                .into_iter()
+                                .map(|i| i.into()),
+                        )
+                        .show(ui);
+
+                    // Seat type
+                    Multiselect::with_state(&mut self.filters.as_mut().unwrap().seat_type)
+                        .with_label("Seat type")
+                        .with_options(
+                            self.filter_values
+                                .as_ref()
+                                .unwrap()
+                                .seat_type
+                                .clone()
+                                .into_iter()
+                                .map(|i| i.into()),
+                        )
+                        .show(ui);
+
+                    // Gender
+                    Multiselect::with_state(&mut self.filters.as_mut().unwrap().gender)
+                        .with_label("Gender")
+                        .with_options(
+                            self.filter_values
+                                .as_ref()
+                                .unwrap()
+                                .gender
+                                .clone()
+                                .into_iter()
+                                .map(|i| i.into()),
+                        )
+                        .show(ui);
+
+                    // Opening rank
+                    RangeSelector::with_state(
+                        &mut self.filters.as_mut().unwrap().or,
+                        &self.filter_values.as_ref().unwrap().or,
+                    )
+                    .with_label("Opening rank")
+                    .show(ui);
+
+                    // Closing rank
+                    RangeSelector::with_state(
+                        &mut self.filters.as_mut().unwrap().cr,
+                        &self.filter_values.as_ref().unwrap().cr,
+                    )
+                    .with_label("Closing rank")
+                    .show(ui);
+
+                    // Apply filters
+                    if ui.button("Apply filters").clicked() {
+                        self.dataset
+                            .load(self.filters.as_ref().unwrap(), self.sort)
+                            .unwrap();
+                    }
+                });
+            });
 
             // Sort selection
             ui.horizontal(|ui| {
