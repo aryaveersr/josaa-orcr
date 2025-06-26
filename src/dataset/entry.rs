@@ -2,6 +2,7 @@ use crate::Filters;
 
 pub struct Entry {
     pub institute: String,
+    pub branch: String,
     pub quota: String,
     pub seat_type: String,
     pub gender: String,

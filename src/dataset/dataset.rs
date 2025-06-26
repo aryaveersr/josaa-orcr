@@ -33,15 +33,16 @@ impl Dataset {
             Connection::open_with_flags(options.into_db_path(), OpenFlags::SQLITE_OPEN_READ_ONLY)?;
 
         self.entries = connection
-            .prepare("SELECT institute, quota, seatType, gender, orank, crank FROM data")?
+            .prepare("SELECT institute, branch, quota, seatType, gender, orank, crank FROM data")?
             .query_map([], |row| {
                 Ok(Entry {
                     institute: row.get(0)?,
-                    quota: row.get(1)?,
-                    seat_type: row.get(2)?,
-                    gender: row.get(3)?,
-                    or: row.get(4)?,
-                    cr: row.get(5)?,
+                    branch: row.get(1)?,
+                    quota: row.get(2)?,
+                    seat_type: row.get(3)?,
+                    gender: row.get(4)?,
+                    or: row.get(5)?,
+                    cr: row.get(6)?,
                 })
             })?
             .collect::<rusqlite::Result<Vec<Entry>>>()?;

@@ -96,6 +96,12 @@ impl eframe::App for AppState {
                     let filters = self.dataset.get_filters();
 
                     ui.collapsing("Filters", |ui| {
+                        // Branch
+                        Multiselect::with_state(&mut filters.branch)
+                            .with_label("Branch")
+                            .with_scroll()
+                            .show(ui);
+
                         // Quota
                         Multiselect::with_state(&mut filters.quota)
                             .with_label("Quota")
@@ -145,10 +151,11 @@ impl eframe::App for AppState {
             // Table view of dataset
             if self.dataset.is_loaded() {
                 TableBuilder::new(ui)
-                    .column(Column::remainder())
+                    .columns(Column::remainder(), 2)
                     .columns(Column::auto(), 5)
                     .header(24.0, |mut header| {
                         header.col(label("Institute"));
+                        header.col(label("Branch"));
                         header.col(label("Quota"));
                         header.col(label("Seat type"));
                         header.col(label("Gender"));
@@ -162,6 +169,7 @@ impl eframe::App for AppState {
                             let data = &entries[row.index()];
 
                             row.col(label(&data.institute));
+                            row.col(label(&data.branch));
                             row.col(label(&data.quota));
                             row.col(label(&data.seat_type));
                             row.col(label(&data.gender));

@@ -6,6 +6,7 @@ use crate::Entry;
 #[derive(Clone)]
 pub struct Filters {
     pub institute_kinds: HashMap<String, (bool, HashMap<String, bool>)>,
+    pub branch: HashMap<String, bool>,
     pub quota: HashMap<String, bool>,
     pub seat_type: HashMap<String, bool>,
     pub gender: HashMap<String, bool>,
@@ -20,6 +21,7 @@ impl Default for Filters {
     fn default() -> Self {
         Self {
             institute_kinds: HashMap::new(),
+            branch: HashMap::new(),
             quota: HashMap::new(),
             seat_type: HashMap::new(),
             gender: HashMap::new(),
@@ -65,6 +67,7 @@ impl Filters {
     }
 
     pub fn load(&mut self, conn: &Connection) -> rusqlite::Result<()> {
+        self.branch = Self::get_uniques(conn, "branch")?;
         self.quota = Self::get_uniques(conn, "quota")?;
         self.seat_type = Self::get_uniques(conn, "seatType")?;
         self.gender = Self::get_uniques(conn, "gender")?;
@@ -81,7 +84,8 @@ impl Filters {
     }
 
     pub fn matches(&self, entry: &Entry) -> bool {
-        if !(*self.quota.get(&entry.quota).unwrap()
+        if !(*self.branch.get(&entry.branch).unwrap()
+            && *self.quota.get(&entry.quota).unwrap()
             && *self.seat_type.get(&entry.seat_type).unwrap()
             && *self.gender.get(&entry.gender).unwrap()
             && self.or.contains(&entry.or)
