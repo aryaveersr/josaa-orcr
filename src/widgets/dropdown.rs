@@ -45,6 +45,8 @@ where
     }
 
     pub fn show(self, ui: &mut egui::Ui, display: impl Fn(&T) -> String) -> Option<Response> {
+        let mut response: Option<Response> = None;
+
         ui.horizontal(|ui| {
             ui.label(&self.label);
 
@@ -55,19 +57,18 @@ where
                     // Show options in dropdown
                     .show_ui(ui, |ui| {
                         let options = self.options.unwrap();
-                        let mut response = ui.response();
+                        let mut acc_response = ui.response();
 
                         for option in options {
-                            response |=
+                            acc_response |=
                                 ui.selectable_value(self.state, option.clone(), display(&option));
                         }
 
-                        response
-                    })
-                    .inner
-            })
-            .inner
-        })
-        .inner
+                        response = Some(acc_response);
+                    });
+            });
+        });
+
+        response
     }
 }

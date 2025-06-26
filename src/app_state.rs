@@ -132,15 +132,14 @@ impl eframe::App for AppState {
                 // Sort selection
                 ui.horizontal(|ui| {
                     ui.add_enabled_ui(self.dataset.is_loaded(), |ui| {
-                        match Dropdown::with_state(&mut self.sort)
+                        if let Some(response) = Dropdown::with_state(&mut self.sort)
                             .with_label("Sort by")
                             .with_options(Sort::as_vec().into_iter())
                             .show(ui, Sort::to_string)
                         {
-                            Some(response) if response.changed() => {
+                            if response.changed() {
                                 self.dataset.sort(&self.sort);
                             }
-                            _ => (),
                         }
                     })
                 });
