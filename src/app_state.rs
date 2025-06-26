@@ -2,6 +2,7 @@ use crate::{
     Dataset, Entry, Options, Sort,
     widgets::{Dropdown, Multiselect, RangeSelector},
 };
+use egui::Widget;
 use egui_extras::{Column, TableBuilder};
 
 pub struct AppState {
@@ -120,12 +121,12 @@ impl eframe::App for AppState {
                         // Opening rank
                         RangeSelector::with_state(&mut filters.or, &filters.or_bounds)
                             .with_label("Opening rank")
-                            .show(ui);
+                            .ui(ui);
 
                         // Closing rank
                         RangeSelector::with_state(&mut filters.cr, &filters.cr_bounds)
                             .with_label("Closing rank")
-                            .show(ui);
+                            .ui(ui);
                     });
                 });
 

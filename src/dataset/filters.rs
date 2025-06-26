@@ -1,36 +1,19 @@
+use crate::{Entry, types::RankRange};
 use rusqlite::Connection;
-use std::{collections::HashMap, ops::RangeInclusive};
+use std::collections::HashMap;
 
-use crate::Entry;
-
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct Filters {
     pub institute_kinds: HashMap<String, (bool, HashMap<String, bool>)>,
     pub branch: HashMap<String, bool>,
     pub quota: HashMap<String, bool>,
     pub seat_type: HashMap<String, bool>,
     pub gender: HashMap<String, bool>,
-    pub or: RangeInclusive<u32>,
-    pub cr: RangeInclusive<u32>,
+    pub or: RankRange,
+    pub cr: RankRange,
 
-    pub or_bounds: RangeInclusive<u32>,
-    pub cr_bounds: RangeInclusive<u32>,
-}
-
-impl Default for Filters {
-    fn default() -> Self {
-        Self {
-            institute_kinds: HashMap::new(),
-            branch: HashMap::new(),
-            quota: HashMap::new(),
-            seat_type: HashMap::new(),
-            gender: HashMap::new(),
-            or: 4..=3,
-            cr: 4..=3,
-            or_bounds: 4..=3,
-            cr_bounds: 4..=3,
-        }
-    }
+    pub or_bounds: RankRange,
+    pub cr_bounds: RankRange,
 }
 
 impl Filters {
@@ -72,8 +55,8 @@ impl Filters {
         self.seat_type = Self::get_uniques(conn, "seatType")?;
         self.gender = Self::get_uniques(conn, "gender")?;
 
-        self.or = 0..=(Self::get_max(conn, "orank"))?;
-        self.cr = 0..=(Self::get_max(conn, "crank"))?;
+        self.or = (0..=(Self::get_max(conn, "orank"))?).into();
+        self.cr = (0..=(Self::get_max(conn, "crank"))?).into();
 
         self.or_bounds = self.or.clone();
         self.cr_bounds = self.cr.clone();
@@ -88,8 +71,8 @@ impl Filters {
             && *self.quota.get(&entry.quota).unwrap()
             && *self.seat_type.get(&entry.seat_type).unwrap()
             && *self.gender.get(&entry.gender).unwrap()
-            && self.or.contains(&entry.or)
-            && self.cr.contains(&entry.cr))
+            && self.or.contains(entry.or)
+            && self.cr.contains(entry.cr))
         {
             return false;
         }
