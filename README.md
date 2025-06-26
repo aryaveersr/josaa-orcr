@@ -13,5 +13,5 @@
 
 ## Building and running tests
 
-1. Make sure you have a [Rust toolchain](https://www.rust-lang.org/) installed.
-2. `cargo run` to run the application and `cargo test` to run all tests.
+1. Make sure you have the [rust toolchain](https://www.rust-lang.org/) installed.
+2. Use `cargo run` to run the application and `cargo test` to run all tests.
