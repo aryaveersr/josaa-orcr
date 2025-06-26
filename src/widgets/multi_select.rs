@@ -1,16 +1,16 @@
+use ahash::AHashMap;
 use egui::Response;
-use std::collections::HashMap;
 
 /// A widget that displays a check-box for every key
-/// in a [`HashMap<String, bool>`].
+/// in a [`AHashMap<String, bool>`].
 ///
 /// # Example
 /// ```
 /// # use josaa_orcr::widgets::Multiselect;
-/// # use std::collections::HashMap;
+/// # use ahash::AHashMap;
 /// #
 /// # egui::__run_test_ui(|ui| {
-/// let mut state: HashMap<String, bool> = HashMap::new();
+/// let mut state: AHashMap<String, bool> = HashMap::new();
 ///
 /// state.insert("Send me newsletters".into(), true);
 /// state.insert("I agree to the terms and services".into(), false);
@@ -30,13 +30,13 @@ use std::collections::HashMap;
 /// ```
 pub struct Multiselect<'a> {
     label: String,
-    state: &'a mut HashMap<String, bool>,
+    state: &'a mut AHashMap<String, bool>,
     scroll: bool,
 }
 
 impl<'a> Multiselect<'a> {
     /// Create a new multi-select with the given state.
-    pub fn with_state(state: &'a mut HashMap<String, bool>) -> Self {
+    pub fn with_state(state: &'a mut AHashMap<String, bool>) -> Self {
         Self {
             label: "".into(),
             scroll: false,
