@@ -153,6 +153,7 @@ impl eframe::App for AppState {
                 TableBuilder::new(ui)
                     .columns(Column::remainder(), 2)
                     .columns(Column::auto(), 5)
+                    .striped(true)
                     .header(24.0, |mut header| {
                         header.col(label("Institute"));
                         header.col(label("Branch"));
@@ -190,6 +191,8 @@ impl eframe::App for AppState {
 
 fn label<T: ToString>(content: T) -> impl FnOnce(&mut egui::Ui) {
     move |ui| {
-        ui.label(content.to_string());
+        ui.horizontal_centered(|ui| {
+            ui.label(content.to_string());
+        });
     }
 }
