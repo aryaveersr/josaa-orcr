@@ -96,8 +96,6 @@ where
         ui: &mut egui::Ui,
         display: impl Fn(&T) -> K,
     ) -> Option<Response> {
-        let mut response: Option<Response> = None;
-
         ui.horizontal(|ui| {
             // Only show the label when it isn't empty.
             if !self.label.is_empty() {
@@ -111,19 +109,20 @@ where
                     // Show options in dropdown
                     .show_ui(ui, |ui| {
                         // Start recording the response for each selectable value.
-                        let mut acc_response = ui.response();
+                        let mut response = ui.response();
                         let options = self.options.expect("No options provided for dropdown.");
 
                         for option in options {
-                            acc_response |=
+                            response |=
                                 ui.selectable_value(self.state, option.clone(), display(&option));
                         }
 
-                        response = Some(acc_response);
-                    });
-            });
-        });
-
-        response
+                        response
+                    })
+                    .inner
+            })
+            .inner
+        })
+        .inner
     }
 }
