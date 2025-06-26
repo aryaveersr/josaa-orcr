@@ -45,7 +45,9 @@ impl eframe::App for AppState {
                             Dropdown::with_state(&mut self.options.round)
                                 .with_label("Round")
                                 .with_options(
-                                    Options::get_valid_rounds(self.options.year).map(Some),
+                                    Options::get_valid_rounds(self.options.year)
+                                        .unwrap()
+                                        .map(Some),
                                 )
                                 .with_enabled(self.options.year.is_some())
                                 .show(ui, |state| match state {

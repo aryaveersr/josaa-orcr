@@ -11,24 +11,20 @@ impl Options {
         2016..=2024
     }
 
-    pub fn get_valid_rounds(year: Option<u16>) -> RangeInclusive<u8> {
-        match year {
-            Some(year) => match year {
-                2016 => 1..=6,
-                2017 => 1..=7,
-                2018 => 1..=7,
-                2019 => 1..=7,
-                2020 => 1..=6,
-                2021 => 1..=6,
-                2022 => 1..=6,
-                2023 => 1..=6,
-                2024 => 1..=5,
+    pub fn get_valid_rounds(year: Option<u16>) -> Option<RangeInclusive<u8>> {
+        year.map(|year| match year {
+            2016 => 1..=6,
+            2017 => 1..=7,
+            2018 => 1..=7,
+            2019 => 1..=7,
+            2020 => 1..=6,
+            2021 => 1..=6,
+            2022 => 1..=6,
+            2023 => 1..=6,
+            2024 => 1..=5,
 
-                _ => panic!("Invalid year: {year}."),
-            },
-
-            None => 4..=3, // Empty range
-        }
+            _ => panic!("Invalid year: {year}."),
+        })
     }
 
     pub fn is_complete(&self) -> bool {
