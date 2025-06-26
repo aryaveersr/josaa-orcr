@@ -5,20 +5,11 @@ use crate::{
 use egui::Widget;
 use egui_extras::{Column, TableBuilder};
 
+#[derive(Default)]
 pub struct AppState {
     dataset: Dataset,
     options: Options,
     sort: Sort,
-}
-
-impl AppState {
-    pub fn new(_cc: &eframe::CreationContext) -> Self {
-        Self {
-            dataset: Dataset::new(),
-            options: Options::default(),
-            sort: Sort::default(),
-        }
-    }
 }
 
 impl eframe::App for AppState {
@@ -46,7 +37,7 @@ impl eframe::App for AppState {
                                 .with_label("Round")
                                 .with_options(
                                     Options::get_valid_rounds(self.options.year)
-                                        .unwrap()
+                                        .unwrap_or(1..=1)
                                         .map(Some),
                                 )
                                 .with_enabled(self.options.year.is_some())

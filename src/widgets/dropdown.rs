@@ -105,7 +105,7 @@ where
             ui.add_enabled_ui(self.enabled, |ui| {
                 egui::ComboBox::from_id_salt(&self.label)
                     // Convert selected value into string or display fallback.
-                    .selected_text(display(&self.state))
+                    .selected_text(display(self.state))
                     // Show options in dropdown
                     .show_ui(ui, |ui| {
                         // Start recording the response for each selectable value.

@@ -28,13 +28,13 @@ impl Filters {
 
     fn get_max(conn: &Connection, field: &'static str) -> rusqlite::Result<u32> {
         conn.prepare(&format!("SELECT MAX({field}) FROM data;"))?
-            .query_one([], |row| Ok(row.get(0)?))
+            .query_one([], |row| row.get(0))
     }
 
     fn get_institutes(&mut self, conn: &Connection) -> rusqlite::Result<()> {
         let kinds = conn
             .prepare("SELECT DISTINCT instituteType FROM institutes;")?
-            .query_map([], |row| Ok(row.get(0)?))?
+            .query_map([], |row| row.get(0))?
             .collect::<rusqlite::Result<Vec<String>>>()?;
 
         for kind in kinds {
@@ -58,8 +58,8 @@ impl Filters {
         self.or = (0..=(Self::get_max(conn, "orank"))?).into();
         self.cr = (0..=(Self::get_max(conn, "crank"))?).into();
 
-        self.or_bounds = self.or.clone();
-        self.cr_bounds = self.cr.clone();
+        self.or_bounds = self.or;
+        self.cr_bounds = self.cr;
 
         self.get_institutes(conn)?;
 
@@ -79,7 +79,7 @@ impl Filters {
 
         let mut matches_institute = false;
 
-        for (_, (kind_enabled, institutes)) in &self.institute_kinds {
+        for (kind_enabled, institutes) in self.institute_kinds.values() {
             if let Some(institute_enabled) = institutes.get(&entry.institute) {
                 matches_institute = *kind_enabled && *institute_enabled;
             }

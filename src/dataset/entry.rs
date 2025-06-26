@@ -26,7 +26,7 @@ impl<'a> Iterator for EntryIterator<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
-            let entry = self.entries.get(0)?;
+            let entry = self.entries.first()?;
             self.entries = &self.entries[1..];
 
             if self.filters.matches(entry) {

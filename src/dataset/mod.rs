@@ -10,6 +10,7 @@ pub use sort::*;
 
 use rusqlite::{Connection, OpenFlags};
 
+#[derive(Default)]
 pub struct Dataset {
     connection: Option<Connection>,
     connection_options: Options,
@@ -19,16 +20,6 @@ pub struct Dataset {
 }
 
 impl Dataset {
-    pub fn new() -> Self {
-        Self {
-            connection: None,
-            connection_options: Options::default(),
-
-            entries: Vec::new(),
-            filters: Filters::default(),
-        }
-    }
-
     pub fn is_loaded(&self) -> bool {
         self.connection.is_some()
     }
