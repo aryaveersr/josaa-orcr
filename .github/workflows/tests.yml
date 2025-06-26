@@ -1,0 +1,26 @@
+name: "Test suite"
+on:
+  push:
+  pull_request:
+
+env:
+  # Fail on all warnings
+  RUSTFLAGS: "-Dwarnings"
+  CARGO_TERM_COLOR: always
+
+jobs:
+  tests:
+    name: cargo test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - run: cargo test --all-features
+
+  lints:
+    name: cargo clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - run: cargo clippy --all-targets --all-features
