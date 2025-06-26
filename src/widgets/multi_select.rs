@@ -1,30 +1,14 @@
-pub struct SelectOption {
-    value: String,
-}
+use std::collections::HashMap;
 
-impl From<String> for SelectOption {
-    fn from(value: String) -> Self {
-        SelectOption { value }
-    }
-}
-
-pub struct Multiselect<'a, I>
-where
-    I: Iterator<Item = SelectOption>,
-{
+pub struct Multiselect<'a> {
     label: String,
-    options: Option<I>,
-    state: &'a mut Vec<String>,
+    state: &'a mut HashMap<String, bool>,
 }
 
-impl<'a, I> Multiselect<'a, I>
-where
-    I: Iterator<Item = SelectOption>,
-{
-    pub fn with_state(state: &'a mut Vec<String>) -> Self {
+impl<'a> Multiselect<'a> {
+    pub fn with_state(state: &'a mut HashMap<String, bool>) -> Self {
         Self {
             label: "".into(),
-            options: None,
             state,
         }
     }
@@ -34,29 +18,11 @@ where
         self
     }
 
-    pub fn with_options(mut self, options: I) -> Self {
-        self.options = Some(options);
-        self
-    }
-
     pub fn show(self, ui: &mut egui::Ui) {
-        let options = match self.options {
-            Some(opts) => opts,
-            None => return,
-        };
-
         ui.collapsing(self.label, |ui| {
             ui.horizontal_wrapped(|ui| {
-                for option in options {
-                    let mut checked = self.state.contains(&option.value);
-
-                    if ui.checkbox(&mut checked, &option.value).clicked() {
-                        if checked {
-                            self.state.push(option.value);
-                        } else {
-                            self.state.retain(|i| *i != option.value);
-                        }
-                    }
+                for (value, checked) in self.state.iter_mut() {
+                    ui.checkbox(checked, value).clicked();
                 }
             });
         });

@@ -1,5 +1,5 @@
 use crate::{
-    Dataset, Filters, Options, Sort,
+    Dataset, Entry, Options, Sort,
     widgets::{Dropdown, Multiselect, RangeSelector},
 };
 use egui_extras::{Column, TableBuilder};
@@ -7,10 +7,6 @@ use egui_extras::{Column, TableBuilder};
 pub struct AppState {
     dataset: Dataset,
     options: Options,
-
-    filter_values: Option<Filters>,
-    filters: Option<Filters>,
-
     sort: Sort,
 }
 
@@ -19,10 +15,6 @@ impl AppState {
         Self {
             dataset: Dataset::new(),
             options: Options::default(),
-
-            filter_values: None,
-            filters: None,
-
             sort: Sort::default(),
         }
     }
@@ -64,15 +56,8 @@ impl eframe::App for AppState {
                             )
                             .clicked()
                         {
-                            self.dataset.create_connection(&self.options).unwrap();
-
-                            self.filters =
-                                Some(Filters::new(self.dataset.get_connection()).unwrap());
-                            self.filter_values = self.filters.clone();
-
-                            self.dataset
-                                .load(self.filters.as_ref().unwrap(), self.sort)
-                                .unwrap();
+                            self.dataset.load(&self.options).unwrap();
+                            self.dataset.sort(&self.sort);
                         }
                     });
                 });
@@ -80,88 +65,49 @@ impl eframe::App for AppState {
             // Filters
             ui.add_enabled_ui(self.dataset.is_loaded(), |ui| {
                 ui.collapsing("Filters", |ui| {
+                    let filters = self.dataset.get_filters();
+
                     // Quota
-                    Multiselect::with_state(&mut self.filters.as_mut().unwrap().quota)
+                    Multiselect::with_state(&mut filters.quota)
                         .with_label("Quota")
-                        .with_options(
-                            self.filter_values
-                                .as_ref()
-                                .unwrap()
-                                .quota
-                                .clone()
-                                .into_iter()
-                                .map(|i| i.into()),
-                        )
                         .show(ui);
 
                     // Seat type
-                    Multiselect::with_state(&mut self.filters.as_mut().unwrap().seat_type)
+                    Multiselect::with_state(&mut filters.seat_type)
                         .with_label("Seat type")
-                        .with_options(
-                            self.filter_values
-                                .as_ref()
-                                .unwrap()
-                                .seat_type
-                                .clone()
-                                .into_iter()
-                                .map(|i| i.into()),
-                        )
                         .show(ui);
 
                     // Gender
-                    Multiselect::with_state(&mut self.filters.as_mut().unwrap().gender)
+                    Multiselect::with_state(&mut filters.gender)
                         .with_label("Gender")
-                        .with_options(
-                            self.filter_values
-                                .as_ref()
-                                .unwrap()
-                                .gender
-                                .clone()
-                                .into_iter()
-                                .map(|i| i.into()),
-                        )
                         .show(ui);
 
                     // Opening rank
-                    RangeSelector::with_state(
-                        &mut self.filters.as_mut().unwrap().or,
-                        &self.filter_values.as_ref().unwrap().or,
-                    )
-                    .with_label("Opening rank")
-                    .show(ui);
+                    RangeSelector::with_state(&mut filters.or, &filters.or_bounds)
+                        .with_label("Opening rank")
+                        .show(ui);
 
                     // Closing rank
-                    RangeSelector::with_state(
-                        &mut self.filters.as_mut().unwrap().cr,
-                        &self.filter_values.as_ref().unwrap().cr,
-                    )
-                    .with_label("Closing rank")
-                    .show(ui);
-
-                    // Apply filters
-                    if ui.button("Apply filters").clicked() {
-                        self.dataset
-                            .load(self.filters.as_ref().unwrap(), self.sort)
-                            .unwrap();
-                    }
+                    RangeSelector::with_state(&mut filters.cr, &filters.cr_bounds)
+                        .with_label("Closing rank")
+                        .show(ui);
                 });
             });
 
             // Sort selection
             ui.horizontal(|ui| {
-                Dropdown::with_state(&mut self.sort)
-                    .with_label("Sort by")
-                    .with_options(Sort::as_vec().into_iter())
-                    .show(ui, Sort::to_string);
-
-                if ui
-                    .add_enabled(self.dataset.is_loaded(), egui::Button::new("Apply sorting"))
-                    .clicked()
-                {
-                    self.dataset
-                        .load(self.filters.as_ref().unwrap(), self.sort)
-                        .unwrap();
-                }
+                ui.add_enabled_ui(self.dataset.is_loaded(), |ui| {
+                    match Dropdown::with_state(&mut self.sort)
+                        .with_label("Sort by")
+                        .with_options(Sort::as_vec().into_iter())
+                        .show(ui, Sort::to_string)
+                    {
+                        Some(response) if response.changed() => {
+                            self.dataset.sort(&self.sort);
+                        }
+                        _ => (),
+                    }
+                })
             });
         });
 
@@ -181,7 +127,7 @@ impl eframe::App for AppState {
                         header.col(label("Closing Rank"));
                     })
                     .body(|body| {
-                        let entries = self.dataset.get_entries();
+                        let entries: Vec<&Entry> = self.dataset.get_entries().collect();
 
                         body.rows(30.0, entries.len(), |mut row| {
                             let data = &entries[row.index()];

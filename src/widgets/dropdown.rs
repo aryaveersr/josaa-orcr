@@ -1,3 +1,5 @@
+use egui::Response;
+
 pub trait Choice: PartialEq + Clone {}
 
 impl<T> Choice for T where T: PartialEq + Clone {}
@@ -42,7 +44,7 @@ where
         self
     }
 
-    pub fn show(self, ui: &mut egui::Ui, display: impl Fn(&T) -> String) {
+    pub fn show(self, ui: &mut egui::Ui, display: impl Fn(&T) -> String) -> Option<Response> {
         ui.horizontal(|ui| {
             ui.label(&self.label);
 
@@ -52,21 +54,20 @@ where
                     .selected_text(display(&self.state))
                     // Show options in dropdown
                     .show_ui(ui, |ui| {
-                        match self.options {
-                            Some(options) => {
-                                for option in options {
-                                    ui.selectable_value(
-                                        self.state,
-                                        option.clone(),
-                                        display(&option),
-                                    );
-                                }
-                            }
+                        let options = self.options.unwrap();
+                        let mut response = ui.response();
 
-                            None => (),
-                        };
-                    });
+                        for option in options {
+                            response |=
+                                ui.selectable_value(self.state, option.clone(), display(&option));
+                        }
+
+                        response
+                    })
+                    .inner
             })
-        });
+            .inner
+        })
+        .inner
     }
 }

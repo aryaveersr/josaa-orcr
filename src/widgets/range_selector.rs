@@ -2,8 +2,10 @@ use std::ops::RangeInclusive;
 
 pub struct RangeSelector<'a> {
     label: String,
+
     start: u32,
     end: u32,
+
     bounds: &'a RangeInclusive<u32>,
     state: &'a mut RangeInclusive<u32>,
 }
