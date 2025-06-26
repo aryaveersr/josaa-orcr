@@ -23,93 +23,122 @@ impl AppState {
 impl eframe::App for AppState {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         // Top Header
-        egui::TopBottomPanel::top("Top Panel").show(ctx, |ui| {
-            // Dataset selection
-            egui::CollapsingHeader::new("Choose a dataset")
-                .default_open(true)
-                .show(ui, |ui| {
-                    ui.horizontal(|ui| {
-                        // Year selection
-                        Dropdown::with_state(&mut self.options.year)
-                            .with_label("Year")
-                            .with_options(Options::get_valid_years().map(Some))
-                            .show(ui, |state| match state {
-                                Some(selected) => selected.to_string(),
-                                None => "Select".into(),
-                            });
+        egui::TopBottomPanel::top("Top Panel")
+            .resizable(true)
+            .show(ctx, |ui| {
+                // Dataset selection
+                egui::CollapsingHeader::new("Choose a dataset")
+                    .default_open(true)
+                    .show(ui, |ui| {
+                        ui.horizontal(|ui| {
+                            // Year selection
+                            Dropdown::with_state(&mut self.options.year)
+                                .with_label("Year")
+                                .with_options(Options::get_valid_years().map(Some))
+                                .show(ui, |state| match state {
+                                    Some(selected) => selected.to_string(),
+                                    None => "Select".into(),
+                                });
 
-                        // Round selection
-                        Dropdown::with_state(&mut self.options.round)
-                            .with_label("Round")
-                            .with_options(Options::get_valid_rounds(self.options.year).map(Some))
-                            .with_enabled(self.options.year.is_some())
-                            .show(ui, |state| match state {
-                                Some(selected) => selected.to_string(),
-                                None => "Select".into(),
-                            });
+                            // Round selection
+                            Dropdown::with_state(&mut self.options.round)
+                                .with_label("Round")
+                                .with_options(
+                                    Options::get_valid_rounds(self.options.year).map(Some),
+                                )
+                                .with_enabled(self.options.year.is_some())
+                                .show(ui, |state| match state {
+                                    Some(selected) => selected.to_string(),
+                                    None => "Select".into(),
+                                });
 
-                        // Load button
-                        if ui
-                            .add_enabled(
-                                self.options.is_complete(),
-                                egui::Button::new("Load dataset"),
+                            // Load button
+                            if ui
+                                .add_enabled(
+                                    self.options.is_complete(),
+                                    egui::Button::new("Load dataset"),
+                                )
+                                .clicked()
+                            {
+                                self.dataset.load(&self.options).unwrap();
+                                self.dataset.sort(&self.sort);
+                            }
+                        });
+                    });
+
+                // Institute filter
+                ui.add_enabled_ui(self.dataset.is_loaded(), |ui| {
+                    ui.collapsing("Institute", |ui| {
+                        let filters = self.dataset.get_filters();
+
+                        for (label, (enabled, institutes)) in filters.institute_kinds.iter_mut() {
+                            egui::collapsing_header::CollapsingState::load_with_default_open(
+                                ui.ctx(),
+                                ui.make_persistent_id(format!("kind_{label}")),
+                                false,
                             )
-                            .clicked()
-                        {
-                            self.dataset.load(&self.options).unwrap();
-                            self.dataset.sort(&self.sort);
+                            .show_header(ui, |ui| {
+                                ui.checkbox(enabled, label);
+                            })
+                            .body_unindented(|ui| {
+                                ui.horizontal_wrapped(|ui| {
+                                    for (value, checked) in institutes.iter_mut() {
+                                        ui.checkbox(checked, value).clicked();
+                                    }
+                                });
+                            });
                         }
                     });
                 });
 
-            // Filters
-            ui.add_enabled_ui(self.dataset.is_loaded(), |ui| {
-                ui.collapsing("Filters", |ui| {
+                // Filters
+                ui.add_enabled_ui(self.dataset.is_loaded(), |ui| {
                     let filters = self.dataset.get_filters();
 
-                    // Quota
-                    Multiselect::with_state(&mut filters.quota)
-                        .with_label("Quota")
-                        .show(ui);
+                    ui.collapsing("Filters", |ui| {
+                        // Quota
+                        Multiselect::with_state(&mut filters.quota)
+                            .with_label("Quota")
+                            .show(ui);
 
-                    // Seat type
-                    Multiselect::with_state(&mut filters.seat_type)
-                        .with_label("Seat type")
-                        .show(ui);
+                        // Seat type
+                        Multiselect::with_state(&mut filters.seat_type)
+                            .with_label("Seat type")
+                            .show(ui);
 
-                    // Gender
-                    Multiselect::with_state(&mut filters.gender)
-                        .with_label("Gender")
-                        .show(ui);
+                        // Gender
+                        Multiselect::with_state(&mut filters.gender)
+                            .with_label("Gender")
+                            .show(ui);
 
-                    // Opening rank
-                    RangeSelector::with_state(&mut filters.or, &filters.or_bounds)
-                        .with_label("Opening rank")
-                        .show(ui);
+                        // Opening rank
+                        RangeSelector::with_state(&mut filters.or, &filters.or_bounds)
+                            .with_label("Opening rank")
+                            .show(ui);
 
-                    // Closing rank
-                    RangeSelector::with_state(&mut filters.cr, &filters.cr_bounds)
-                        .with_label("Closing rank")
-                        .show(ui);
+                        // Closing rank
+                        RangeSelector::with_state(&mut filters.cr, &filters.cr_bounds)
+                            .with_label("Closing rank")
+                            .show(ui);
+                    });
+                });
+
+                // Sort selection
+                ui.horizontal(|ui| {
+                    ui.add_enabled_ui(self.dataset.is_loaded(), |ui| {
+                        match Dropdown::with_state(&mut self.sort)
+                            .with_label("Sort by")
+                            .with_options(Sort::as_vec().into_iter())
+                            .show(ui, Sort::to_string)
+                        {
+                            Some(response) if response.changed() => {
+                                self.dataset.sort(&self.sort);
+                            }
+                            _ => (),
+                        }
+                    })
                 });
             });
-
-            // Sort selection
-            ui.horizontal(|ui| {
-                ui.add_enabled_ui(self.dataset.is_loaded(), |ui| {
-                    match Dropdown::with_state(&mut self.sort)
-                        .with_label("Sort by")
-                        .with_options(Sort::as_vec().into_iter())
-                        .show(ui, Sort::to_string)
-                    {
-                        Some(response) if response.changed() => {
-                            self.dataset.sort(&self.sort);
-                        }
-                        _ => (),
-                    }
-                })
-            });
-        });
 
         // Center Panel
         egui::CentralPanel::default().show(ctx, |ui| {
