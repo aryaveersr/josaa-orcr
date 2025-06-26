@@ -1,16 +1,16 @@
-use ahash::AHashMap;
 use egui::Response;
+use rustc_hash::FxHashMap;
 
 /// A widget that displays a check-box for every key
-/// in a [`AHashMap<String, bool>`].
+/// in a [`FxHashMap<String, bool>`].
 ///
 /// # Example
 /// ```
 /// # use josaa_orcr::widgets::Multiselect;
-/// # use ahash::AHashMap;
+/// # use rustc_hash::FxHashMap;
 /// #
 /// # egui::__run_test_ui(|ui| {
-/// let mut state: AHashMap<String, bool> = AHashMap::new();
+/// let mut state: FxHashMap<String, bool> = FxHashMap::default();
 ///
 /// state.insert("Send me newsletters".into(), true);
 /// state.insert("I agree to the terms and services".into(), false);
@@ -30,13 +30,13 @@ use egui::Response;
 /// ```
 pub struct Multiselect<'a> {
     label: String,
-    state: &'a mut AHashMap<String, bool>,
+    state: &'a mut FxHashMap<String, bool>,
     scroll: bool,
 }
 
 impl<'a> Multiselect<'a> {
     /// Create a new multi-select with the given state.
-    pub fn with_state(state: &'a mut AHashMap<String, bool>) -> Self {
+    pub fn with_state(state: &'a mut FxHashMap<String, bool>) -> Self {
         Self {
             label: "".into(),
             scroll: false,

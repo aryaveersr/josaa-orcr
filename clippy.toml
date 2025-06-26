@@ -1,7 +1,2 @@
-# Use `ahash::AHashMap` and `ahash::AHashSet` instead.
-disallowed-types = [
-    "std::collections::HashMap",
-    "std::collections::HashSet",
-    "ahash::HashMap",
-    "ahash::HashSet",
-]
+# Use `rustc_hash::FxHashMap` and `rustc_hash::FxHashSet` instead.
+disallowed-types = ["std::collections::HashMap", "std::collections::HashSet"]

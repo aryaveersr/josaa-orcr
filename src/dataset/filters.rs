@@ -1,14 +1,14 @@
 use crate::{Entry, types::RankRange};
-use ahash::AHashMap;
 use rusqlite::Connection;
+use rustc_hash::FxHashMap;
 
 #[derive(Clone, Default)]
 pub struct Filters {
-    pub institute_kinds: AHashMap<String, (bool, AHashMap<String, bool>)>,
-    pub branch: AHashMap<String, bool>,
-    pub quota: AHashMap<String, bool>,
-    pub seat_type: AHashMap<String, bool>,
-    pub gender: AHashMap<String, bool>,
+    pub institute_kinds: FxHashMap<String, (bool, FxHashMap<String, bool>)>,
+    pub branch: FxHashMap<String, bool>,
+    pub quota: FxHashMap<String, bool>,
+    pub seat_type: FxHashMap<String, bool>,
+    pub gender: FxHashMap<String, bool>,
     pub or: RankRange,
     pub cr: RankRange,
 
@@ -20,7 +20,7 @@ impl Filters {
     fn get_uniques(
         conn: &Connection,
         field: &'static str,
-    ) -> rusqlite::Result<AHashMap<String, bool>> {
+    ) -> rusqlite::Result<FxHashMap<String, bool>> {
         conn.prepare(&format!("SELECT DISTINCT {field} FROM data;"))?
             .query_map([], |row| Ok((row.get(0)?, true)))?
             .collect()
@@ -41,7 +41,7 @@ impl Filters {
             let institutes = conn
                 .prepare("SELECT institute FROM institutes WHERE instituteType = ?1;")?
                 .query_map([&kind], |row| Ok((row.get(0)?, true)))?
-                .collect::<rusqlite::Result<AHashMap<String, bool>>>()?;
+                .collect::<rusqlite::Result<FxHashMap<String, bool>>>()?;
 
             self.institute_kinds.insert(kind, (true, institutes));
         }
