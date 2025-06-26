@@ -4,8 +4,8 @@ use josaa_orcr::AppState;
 fn main() -> eframe::Result {
     let native_options = eframe::NativeOptions {
         viewport: ViewportBuilder::default()
-            .with_inner_size([1200.0, 800.0])
-            .with_min_inner_size([800.0, 600.0]),
+            .with_min_inner_size([800.0, 600.0])
+            .with_maximized(true),
 
         ..Default::default()
     };
