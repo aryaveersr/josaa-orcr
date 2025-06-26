@@ -10,7 +10,7 @@ use egui::Response;
 /// # use ahash::AHashMap;
 /// #
 /// # egui::__run_test_ui(|ui| {
-/// let mut state: AHashMap<String, bool> = HashMap::new();
+/// let mut state: AHashMap<String, bool> = AHashMap::new();
 ///
 /// state.insert("Send me newsletters".into(), true);
 /// state.insert("I agree to the terms and services".into(), false);
