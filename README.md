@@ -11,6 +11,12 @@
 - [ ] Scraper interface to scrape and update local datasets.
 - [ ] Support for custom SQL queries on datasets.
 
+## Screenshots
+
+<img width="1366" height="768" alt="Screenshot from 2025-07-29 17-37-18" src="https://github.com/user-attachments/assets/f863d6f1-e91b-45bb-a4ba-67dfb1cff29f" />
+<img width="1366" height="768" alt="Screenshot from 2025-07-29 17-37-01" src="https://github.com/user-attachments/assets/866c404b-d475-43ec-883e-b02920233f28" />
+
+
 ## Building and running tests
 
 1. Make sure you have the [rust toolchain](https://www.rust-lang.org/) installed.
