@@ -7,12 +7,8 @@ edition = "2024"
 egui = "0.31"
 egui_extras = "0.31"
 rustc-hash = "2.1"
+eframe = "0.31"
 
 [dependencies.rusqlite]
 version = "0.36"
 features = ["bundled"]
-
-[dependencies.eframe]
-version = "0.31"
-default-features = false
-features = ["accesskit", "default_fonts", "glow"]
